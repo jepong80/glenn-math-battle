@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glenn's Math Battle</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+    }
+
+    :root {
+      --bg-1: #08111f;
+      --bg-2: #111c3a;
+      --panel: rgba(12, 24, 50, 0.92);
+      --panel-2: rgba(20, 38, 77, 0.92);
+      --gold: #facc15;
+      --cyan: #22d3ee;
+      --violet: #8b5cf6;
+      --green: #22c55e;
+      --red: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: rgba(250, 204, 21, 0.35);
+      --shadow: rgba(0, 0, 0, 0.45);
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(34, 211, 238, 0.18), transparent 35%),
+        radial-gradient(circle at 85% 15%, rgba(139, 92, 246, 0.2), transparent 40%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
+      color: var(--text);
+      padding: 18px;
+      overflow-x: hidden;
+    }
+
+    .arena-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.35;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: radial-gradient(circle, black, transparent 75%);
+    }
+
+    .game-shell {
+      width: 100%;
+      max-width: 1050px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--gold), #fb923c);
+      box-shadow: 0 0 24px rgba(250, 204, 21, 0.45);
+      color: #111827;
+      font-weight: 900;
+      font-size: 1.35rem;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+
+    .brand p {
+      color: var(--muted);
+      margin-top: 4px;
+      font-size: 0.94rem;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      color: var(--text);
+      background: linear-gradient(135deg, rgba(34, 211, 238, 0.25), rgba(139, 92, 246, 0.25));
+      box-shadow: 0 8px 22px var(--shadow);
+      transition: transform 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+      box-shadow: 0 12px 28px var(--shadow);
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      transform: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #facc15, #f97316);
+      color: #111827;
+      border-color: rgba(250, 204, 21, 0.75);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      color: white;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 310px 1fr 285px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, var(--panel), rgba(8, 17, 34, 0.94));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: 0 20px 50px var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+    }
+
+    .panel-header {
+      padding: 15px 17px;
+      background: linear-gradient(90deg, rgba(250, 204, 21, 0.18), rgba(34, 211, 238, 0.08));
+      border-bottom: 1px solid rgba(250, 204, 21, 0.18);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-header h2 {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #fde68a;
+    }
+
+    .panel-body {
+      padding: 18px;
+    }
+
+    .hero-card {
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .hero-avatar {
+      width: 76px;
+      height: 76px;
+      border-radius: 24px;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at top, rgba(250, 204, 21, 0.85), rgba(34, 211, 238, 0.2));
+      border: 2px solid rgba(250, 204, 21, 0.5);
+      font-size: 2.2rem;
+      box-shadow: 0 0 26px rgba(250, 204, 21, 0.22);
+    }
+
+    .hero-card h3 {
+      font-size: 1.15rem;
+      margin-bottom: 5px;
+    }
+
+    .hero-card p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    .hero-select {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .hero-option {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      border-radius: 16px;
+      padding: 12px 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: 0.2s ease;
+    }
+
+    .hero-option:hover,
+    .hero-option.active {
+      border-color: var(--gold);
+      box-shadow: 0 0 18px rgba(250, 204, 21, 0.28);
+      transform: translateY(-2px);
+    }
+
+    .hero-option span {
+      display: block;
+      font-size: 1.35rem;
+      margin-bottom: 5px;
+    }
+
+    .hero-option small {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .meter-group {
+      display: grid;
+      gap: 12px;
+    }
+
+    .meter-label {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 0.87rem;
+      margin-bottom: 6px;
+    }
+
+    .meter {
+      height: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .meter-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--cyan), var(--gold));
+      transition: width 0.25s ease;
+    }
+
+    .arena-panel {
+      min-height: 625px;
+    }
+
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      background: rgba(255, 255, 255, 0.065);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      padding: 12px 8px;
+      text-align: center;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 5px;
+    }
+
+    .stat strong {
+      font-size: 1.35rem;
+      color: #f8fafc;
+    }
+
+    .battle-screen {
+      min-height: 340px;
+      border-radius: 26px;
+      border: 1px solid rgba(34, 211, 238, 0.24);
+      background:
+        radial-gradient(circle at 50% 15%, rgba(250, 204, 21, 0.12), transparent 25%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(2, 6, 23, 0.9));
+      padding: 22px;
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .battle-screen::before,
+    .battle-screen::after {
+      content: "";
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      border: 1px solid rgba(34, 211, 238, 0.15);
+      transform: rotate(25deg);
+    }
+
+    .battle-screen::before {
+      left: -120px;
+      bottom: -160px;
+    }
+
+    .battle-screen::after {
+      right: -110px;
+      top: -150px;
+    }
+
+    .question-card {
+      width: 100%;
+      max-width: 530px;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+
+    .round-label {
+      color: var(--gold);
+      font-size: 0.85rem;
+      font-weight: 900;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    #question {
+      display: inline-block;
+      width: 100%;
+      padding: 24px 14px;
+      border-radius: 22px;
+      font-size: clamp(2.2rem, 9vw, 4.6rem);
+      font-weight: 900;
+      color: white;
+      text-shadow: 0 0 18px rgba(34, 211, 238, 0.5);
+      border: 1px solid rgba(250, 204, 21, 0.25);
+      background: linear-gradient(135deg, rgba(34, 211, 238, 0.13), rgba(139, 92, 246, 0.14));
+      margin-bottom: 16px;
+    }
+
+    .answer-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    input {
+      width: 100%;
+      padding: 15px 16px;
+      border-radius: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-size: 1.2rem;
+      font-weight: 800;
+      text-align: center;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 18px rgba(34, 211, 238, 0.22);
+    }
+
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.42);
+    }
+
+    .battle-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    #message {
+      min-height: 30px;
+      font-weight: 900;
+      margin-top: 14px;
+      line-height: 1.4;
+    }
+
+    .message-good { color: var(--green); }
+    .message-bad { color: var(--red); }
+    .message-info { color: var(--cyan); }
+    .message-gold { color: var(--gold); }
+
+    .floating-feedback {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      font-weight: 900;
+      font-size: 1.2rem;
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+    }
+
+    .floating-feedback.show {
+      animation: floatUp 0.75s ease;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 0; transform: translateY(12px) scale(0.9); }
+      25% { opacity: 1; transform: translateY(0) scale(1.08); }
+      100% { opacity: 0; transform: translateY(-28px) scale(1); }
+    }
+
+    .rank-card {
+      text-align: center;
+    }
+
+    .rank-badge {
+      width: 112px;
+      height: 112px;
+      border-radius: 50%;
+      margin: 0 auto 12px;
+      display: grid;
+      place-items: center;
+      border: 3px solid var(--gold);
+      background: radial-gradient(circle, rgba(250, 204, 21, 0.28), rgba(34, 211, 238, 0.12), rgba(15, 23, 42, 0.95));
+      box-shadow: 0 0 32px rgba(250, 204, 21, 0.24);
+      font-size: 2.65rem;
+    }
+
+    #rankName {
+      font-size: 1.35rem;
+      color: #fde68a;
+      margin-bottom: 5px;
+    }
+
+    #scoreStatus {
+      display: inline-block;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-weight: 900;
+      margin: 8px 0 12px;
+      background: rgba(34, 211, 238, 0.12);
+      color: var(--cyan);
+      border: 1px solid rgba(34, 211, 238, 0.22);
+    }
+
+    .mini-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .mini-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 11px 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.055);
+      color: var(--muted);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.93rem;
+    }
+
+    .mini-item strong {
+      color: var(--text);
+    }
+
+    .history-empty {
+      color: var(--muted);
+      line-height: 1.45;
+      text-align: center;
+      padding: 12px 0;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(2, 6, 23, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 10;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 520px;
+      background: linear-gradient(180deg, #111c3a, #08111f);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: 0 22px 70px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+    }
+
+    .modal .panel-body {
+      display: grid;
+      gap: 15px;
+    }
+
+    .setting-row {
+      display: grid;
+      gap: 8px;
+    }
+
+    .setting-row label {
+      color: #fde68a;
+      font-weight: 900;
+      font-size: 0.95rem;
+    }
+
+    select,
+    .toggle-wrap {
+      width: 100%;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    select option {
+      background: #111827;
+      color: white;
+    }
+
+    .toggle-wrap {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toggle-chip {
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .toggle-chip input {
+      width: auto;
+      padding: 0;
+      margin: 0;
+      accent-color: #facc15;
+    }
+
+    .toggle-chip:has(input:checked) {
+      color: var(--text);
+      border-color: rgba(250, 204, 21, 0.55);
+      box-shadow: 0 0 14px rgba(250, 204, 21, 0.18);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .flash-correct {
+      animation: correctPulse 0.28s ease;
+    }
+
+    .flash-wrong {
+      animation: wrongShake 0.28s ease;
+    }
+
+    @keyframes correctPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.025); box-shadow: 0 0 28px rgba(34, 197, 94, 0.25); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes wrongShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    @media (max-width: 980px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .arena-panel {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 620px) {
+      body {
+        padding: 12px;
+      }
+
+      .top-bar {
+        align-items: stretch;
+      }
+
+      .brand,
+      .top-actions {
+        width: 100%;
+      }
+
+      .top-actions .btn {
+        flex: 1;
+      }
+
+      .hud {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .answer-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-select {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="arena-bg"></div>
+
+  <div class="game-shell">
+    <header class="top-bar">
+      <div class="brand">
+        <div class="logo">M+</div>
+        <div>
+          <h1>Glenn's Math Battle</h1>
+          <p>Practice your math skills, beat your score, and challenge your friends.</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="btn" id="settingsBtn">⚙️ Settings</button>
+        <button class="btn btn-primary" id="startBtn">Start Game</button>
+      </div>
+    </header>
+
+    <main class="main-grid">
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Choose Your Character</h2>
+          <span>⚔️</span>
+        </div>
+        <div class="panel-body">
+          <div class="hero-card">
+            <div class="hero-avatar" id="heroAvatar">🛡️</div>
+            <div>
+              <h3 id="heroName">Guardian</h3>
+              <p id="heroPower">A steady character for players who want a balanced game.</p>
+            </div>
+          </div>
+
+          <div class="hero-select">
+            <button class="hero-option active" data-hero="Guardian">
+              <span>🛡️</span>
+              <small>Guardian</small>
+            </button>
+            <button class="hero-option" data-hero="Assassin">
+              <span>🗡️</span>
+              <small>Assassin</small>
+            </button>
+            <button class="hero-option" data-hero="Mage">
+              <span>🔮</span>
+              <small>Mage</small>
+            </button>
+          </div>
+
+          <div class="meter-group">
+            <div>
+              <div class="meter-label"><span>Battle Energy</span><strong id="energyText">0%</strong></div>
+              <div class="meter"><div class="meter-fill" id="energyFill"></div></div>
+            </div>
+            <div>
+              <div class="meter-label"><span>Accuracy</span><strong id="accuracyText">0%</strong></div>
+              <div class="meter"><div class="meter-fill" id="accuracyFill"></div></div>
+            </div>
+            <div>
+              <div class="meter-label"><span>Combo Power</span><strong id="comboText">0x</strong></div>
+              <div class="meter"><div class="meter-fill" id="comboFill"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel arena-panel">
+        <div class="panel-header">
+          <h2>Game Area</h2>
+          <span id="difficultyLabel">Normal Mode</span>
+        </div>
+        <div class="panel-body">
+          <div class="hud">
+            <div class="stat"><span>Time</span><strong id="time">30</strong></div>
+            <div class="stat"><span>Score</span><strong id="score">0</strong></div>
+            <div class="stat"><span>Streak</span><strong id="streak">0</strong></div>
+            <div class="stat"><span>High</span><strong id="bestScore">0</strong></div>
+            <div class="stat"><span>Mode</span><strong id="modeStat">Normal</strong></div>
+          </div>
+
+          <div class="battle-screen" id="battleScreen">
+            <div class="floating-feedback" id="floatingFeedback">+1</div>
+            <div class="question-card">
+              <div class="round-label" id="roundLabel">Get Ready</div>
+              <div id="question">Press Start</div>
+
+              <div class="answer-row">
+                <input type="number" id="answer" placeholder="Enter answer" disabled />
+                <button class="btn btn-primary" id="submitBtn" disabled>Attack</button>
+              </div>
+
+              <div class="battle-actions">
+                <button class="btn" id="pauseBtn" disabled>Pause</button>
+                <button class="btn btn-danger" id="restartBtn">Reset</button>
+              </div>
+
+              <p id="message" class="message-info">Choose your character, check the settings, then start the game.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Score Board</h2>
+          <span>🏆</span>
+        </div>
+        <div class="panel-body">
+          <div class="rank-card">
+            <div class="rank-badge" id="rankBadge">⭐</div>
+            <h3 id="rankName">No Rank Yet</h3>
+            <span id="scoreStatus">No score yet</span>
+            <p id="scoreComment" style="color: var(--muted); line-height: 1.45;">Play one round to see your score result.</p>
+          </div>
+
+          <div class="mini-list">
+            <div class="mini-item"><span>Last Score</span><strong id="lastScore">0</strong></div>
+            <div class="mini-item"><span>Good Score</span><strong id="averageScore">0</strong></div>
+            <div class="mini-item"><span>Needs Practice</span><strong id="lowScore">0</strong></div>
+            <div class="mini-item"><span>Total Battles</span><strong id="totalBattles">0</strong></div>
+          </div>
+
+          <div class="mini-list" id="historyList">
+            <p class="history-empty">Your latest game results will appear here.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="settingsModal">
+    <section class="modal">
+      <div class="panel-header">
+        <h2>Settings</h2>
+        <button class="btn" id="closeSettingsBtn">✕</button>
+      </div>
+      <div class="panel-body">
+        <div class="setting-row">
+          <label for="difficultySelect">Difficulty</label>
+          <select id="difficultySelect">
+            <option value="Easy">Easy - small numbers</option>
+            <option value="Normal" selected>Normal - regular challenge</option>
+            <option value="Hard">Hard - bigger numbers</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <label for="timeSelect">Game Time</label>
+          <select id="timeSelect">
+            <option value="30" selected>30 seconds</option>
+            <option value="45">45 seconds</option>
+            <option value="60">60 seconds</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <label>Math Questions</label>
+          <div class="toggle-wrap">
+            <label class="toggle-chip"><input type="checkbox" value="+" checked /> Add</label>
+            <label class="toggle-chip"><input type="checkbox" value="-" checked /> Subtract</label>
+            <label class="toggle-chip"><input type="checkbox" value="×" checked /> Multiply</label>
+            <label class="toggle-chip"><input type="checkbox" value="÷" /> Divide</label>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <label>Effects</label>
+          <div class="toggle-wrap">
+            <label class="toggle-chip"><input type="checkbox" id="soundToggle" checked /> Sound</label>
+            <label class="toggle-chip"><input type="checkbox" id="autoNextToggle" checked /> Auto Next</label>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn" id="clearScoresBtn">Reset Scores</button>
+          <button class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const elements = {
+      settingsBtn: document.getElementById("settingsBtn"),
+      settingsModal: document.getElementById("settingsModal"),
+      closeSettingsBtn: document.getElementById("closeSettingsBtn"),
+      saveSettingsBtn: document.getElementById("saveSettingsBtn"),
+      clearScoresBtn: document.getElementById("clearScoresBtn"),
+      difficultySelect: document.getElementById("difficultySelect"),
+      timeSelect: document.getElementById("timeSelect"),
+      soundToggle: document.getElementById("soundToggle"),
+      autoNextToggle: document.getElementById("autoNextToggle"),
+      difficultyLabel: document.getElementById("difficultyLabel"),
+      modeStat: document.getElementById("modeStat"),
+      heroAvatar: document.getElementById("heroAvatar"),
+      heroName: document.getElementById("heroName"),
+      heroPower: document.getElementById("heroPower"),
+      energyText: document.getElementById("energyText"),
+      energyFill: document.getElementById("energyFill"),
+      accuracyText: document.getElementById("accuracyText"),
+      accuracyFill: document.getElementById("accuracyFill"),
+      comboText: document.getElementById("comboText"),
+      comboFill: document.getElementById("comboFill"),
+      time: document.getElementById("time"),
+      score: document.getElementById("score"),
+      streak: document.getElementById("streak"),
+      bestScore: document.getElementById("bestScore"),
+      roundLabel: document.getElementById("roundLabel"),
+      question: document.getElementById("question"),
+      answer: document.getElementById("answer"),
+      startBtn: document.getElementById("startBtn"),
+      submitBtn: document.getElementById("submitBtn"),
+      pauseBtn: document.getElementById("pauseBtn"),
+      restartBtn: document.getElementById("restartBtn"),
+      message: document.getElementById("message"),
+      floatingFeedback: document.getElementById("floatingFeedback"),
+      battleScreen: document.getElementById("battleScreen"),
+      rankBadge: document.getElementById("rankBadge"),
+      rankName: document.getElementById("rankName"),
+      scoreStatus: document.getElementById("scoreStatus"),
+      scoreComment: document.getElementById("scoreComment"),
+      lastScore: document.getElementById("lastScore"),
+      averageScore: document.getElementById("averageScore"),
+      lowScore: document.getElementById("lowScore"),
+      totalBattles: document.getElementById("totalBattles"),
+      historyList: document.getElementById("historyList")
+    };
+
+    const heroes = {
+      Guardian: {
+        icon: "🛡️",
+        power: "Balanced hero. Great for steady scoring.",
+        bonus: "balanced"
+      },
+      Assassin: {
+        icon: "🗡️",
+        power: "A fast character for players who want bigger combo points.",
+        bonus: "streak"
+      },
+      Mage: {
+        icon: "🔮",
+        power: "A smart character for players who want extra battle energy.",
+        bonus: "energy"
+      }
+    };
+
+    const difficultyRules = {
+      Easy: { maxAdd: 15, maxMultiply: 8, wrongPenalty: 0, basePoints: 1 },
+      Normal: { maxAdd: 25, maxMultiply: 12, wrongPenalty: 1, basePoints: 2 },
+      Hard: { maxAdd: 50, maxMultiply: 15, wrongPenalty: 2, basePoints: 3 }
+    };
+
+    let settings = JSON.parse(localStorage.getItem("arenaSettings")) || {
+      difficulty: "Normal",
+      timeLimit: 30,
+      operators: ["+", "-", "×"],
+      sound: true,
+      autoNext: true,
+      hero: "Guardian"
+    };
+
+    let stats = JSON.parse(localStorage.getItem("arenaStats")) || {
+      best: 0,
+      scores: []
+    };
+
+    let game = {
+      correctAnswer: 0,
+      score: 0,
+      streak: 0,
+      correct: 0,
+      attempts: 0,
+      timeLeft: settings.timeLimit,
+      energy: 0,
+      isPlaying: false,
+      isPaused: false,
+      timer: null,
+      round: 0
+    };
+
+    function saveSettings() {
+      localStorage.setItem("arenaSettings", JSON.stringify(settings));
+    }
+
+    function saveStats() {
+      localStorage.setItem("arenaStats", JSON.stringify(stats));
+    }
+
+    function randomNumber(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function playTone(type) {
+      if (!settings.sound) return;
+
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+
+      oscillator.frequency.value = type === "correct" ? 720 : type === "wrong" ? 180 : 440;
+      oscillator.type = type === "correct" ? "triangle" : "sawtooth";
+      gain.gain.setValueAtTime(0.08, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.12);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.13);
+    }
+
+    function setMessage(text, type = "info") {
+      elements.message.textContent = text;
+      elements.message.className = `message-${type}`;
+    }
+
+    function updateHero(heroName) {
+      settings.hero = heroName;
+      const hero = heroes[heroName];
+      elements.heroAvatar.textContent = hero.icon;
+      elements.heroName.textContent = heroName;
+      elements.heroPower.textContent = hero.power;
+
+      document.querySelectorAll(".hero-option").forEach((button) => {
+        button.classList.toggle("active", button.dataset.hero === heroName);
+      });
+
+      saveSettings();
+    }
+
+    function getAccuracy() {
+      if (game.attempts === 0) return 0;
+      return Math.round((game.correct / game.attempts) * 100);
+    }
+
+    function updateMeters() {
+      const accuracy = getAccuracy();
+      const comboPercent = Math.min(game.streak * 10, 100);
+      const energyPercent = Math.min(game.energy, 100);
+
+      elements.energyText.textContent = `${energyPercent}%`;
+      elements.energyFill.style.width = `${energyPercent}%`;
+      elements.accuracyText.textContent = `${accuracy}%`;
+      elements.accuracyFill.style.width = `${accuracy}%`;
+      elements.comboText.textContent = `${game.streak}x`;
+      elements.comboFill.style.width = `${comboPercent}%`;
+    }
+
+    function updateHud() {
+      elements.time.textContent = game.timeLeft;
+      elements.score.textContent = game.score;
+      elements.streak.textContent = game.streak;
+      elements.bestScore.textContent = stats.best;
+      elements.modeStat.textContent = settings.difficulty;
+      elements.difficultyLabel.textContent = `${settings.difficulty} Mode`;
+      updateMeters();
+    }
+
+    function getScoreRating(score) {
+      const average = getAverageScore();
+
+      if (score === 0) {
+        return {
+          status: "Needs Practice",
+          badge: "🪨",
+          rank: "Rookie",
+          comment: "Keep practicing. Try Easy mode first and answer carefully."
+        };
+      }
+
+      if (stats.best > 0 && score >= stats.best) {
+        return {
+          status: "Best Score",
+          badge: "👑",
+          rank: "Mythic Solver",
+          comment: "Great job! This is your best game so far."
+        };
+      }
+
+      if (average > 0 && score >= average) {
+        return {
+          status: "Good Score",
+          badge: "⚔️",
+          rank: "Arena Fighter",
+          comment: "Good work! Your score is close to your usual result."
+        };
+      }
+
+      return {
+        status: "Needs Practice",
+        badge: "🛡️",
+        rank: "Training Hero",
+        comment: "Not bad. Try to build a streak and avoid wrong answers."
+      };
+    }
+
+    function getAverageScore() {
+      if (stats.scores.length === 0) return 0;
+      const total = stats.scores.reduce((sum, item) => sum + item.score, 0);
+      return Math.round(total / stats.scores.length);
+    }
+
+    function getLowScore() {
+      if (stats.scores.length === 0) return 0;
+      return Math.min(...stats.scores.map((item) => item.score));
+    }
+
+    function updateRankBoard(lastScoreValue = stats.scores[0]?.score || 0) {
+      const average = getAverageScore();
+      const low = getLowScore();
+      const rating = getScoreRating(lastScoreValue);
+
+      elements.rankBadge.textContent = rating.badge;
+      elements.rankName.textContent = rating.rank;
+      elements.scoreStatus.textContent = rating.status;
+      elements.scoreComment.textContent = rating.comment;
+      elements.lastScore.textContent = lastScoreValue;
+      elements.averageScore.textContent = average;
+      elements.lowScore.textContent = low;
+      elements.totalBattles.textContent = stats.scores.length;
+      elements.bestScore.textContent = stats.best;
+
+      if (stats.scores.length === 0) {
+        elements.historyList.innerHTML = `<p class="history-empty">Your latest battle results will appear here.</p>`;
+        return;
+      }
+
+      elements.historyList.innerHTML = stats.scores.slice(0, 5).map((item, index) => {
+        return `<div class="mini-item"><span>#${index + 1} ${item.mode}</span><strong>${item.score} pts</strong></div>`;
+      }).join("");
+    }
+
+    function generateQuestion() {
+      const rules = difficultyRules[settings.difficulty];
+      const operators = settings.operators.length ? settings.operators : ["+", "-", "×"];
+      const operator = operators[randomNumber(0, operators.length - 1)];
+      let num1;
+      let num2;
+
+      if (operator === "+") {
+        num1 = randomNumber(1, rules.maxAdd);
+        num2 = randomNumber(1, rules.maxAdd);
+        game.correctAnswer = num1 + num2;
+      }
+
+      if (operator === "-") {
+        num1 = randomNumber(1, rules.maxAdd);
+        num2 = randomNumber(1, rules.maxAdd);
+        if (num2 > num1) [num1, num2] = [num2, num1];
+        game.correctAnswer = num1 - num2;
+      }
+
+      if (operator === "×") {
+        num1 = randomNumber(1, rules.maxMultiply);
+        num2 = randomNumber(1, rules.maxMultiply);
+        game.correctAnswer = num1 * num2;
+      }
+
+      if (operator === "÷") {
+        num2 = randomNumber(1, rules.maxMultiply);
+        game.correctAnswer = randomNumber(1, rules.maxMultiply);
+        num1 = num2 * game.correctAnswer;
+      }
+
+      game.round++;
+      elements.roundLabel.textContent = `Round ${game.round} • ${settings.hero} Hero`;
+      elements.question.textContent = `${num1} ${operator} ${num2}`;
+      elements.answer.value = "";
+      elements.answer.focus();
+    }
+
+    function calculatePoints() {
+      const rules = difficultyRules[settings.difficulty];
+      let points = rules.basePoints;
+
+      if (game.streak >= 3) points += 1;
+      if (game.streak >= 5) points += 2;
+      if (settings.hero === "Assassin" && game.streak >= 3) points += 1;
+      if (game.energy >= 100) points += 3;
+
+      return points;
+    }
+
+    function showFloatingFeedback(text, good = true) {
+      elements.floatingFeedback.textContent = text;
+      elements.floatingFeedback.style.color = good ? "var(--green)" : "var(--red)";
+      elements.floatingFeedback.classList.remove("show");
+      void elements.floatingFeedback.offsetWidth;
+      elements.floatingFeedback.classList.add("show");
+    }
+
+    function checkAnswer() {
+      if (!game.isPlaying || game.isPaused) return;
+
+      if (elements.answer.value.trim() === "") {
+        setMessage("Type an answer before attacking.", "bad");
+        return;
+      }
+
+      const userAnswer = Number(elements.answer.value);
+      game.attempts++;
+
+      if (userAnswer === game.correctAnswer) {
+        game.correct++;
+        game.streak++;
+        let energyGain = settings.hero === "Mage" ? 18 : 12;
+        game.energy = Math.min(100, game.energy + energyGain);
+
+        const points = calculatePoints();
+        game.score += points;
+
+        setMessage(`Correct! +${points} points. Combo ${game.streak}x!`, "good");
+        showFloatingFeedback(`+${points}`, true);
+        playTone("correct");
+        elements.battleScreen.classList.remove("flash-correct");
+        void elements.battleScreen.offsetWidth;
+        elements.battleScreen.classList.add("flash-correct");
+
+        if (game.energy >= 100) {
+          setMessage(`Ultimate ready! Correct answers now give bonus points.`, "gold");
+        }
+      } else {
+        const penalty = difficultyRules[settings.difficulty].wrongPenalty;
+        game.score = Math.max(0, game.score - penalty);
+        game.streak = 0;
+        game.energy = Math.max(0, game.energy - 10);
+
+        setMessage(`Wrong. The answer was ${game.correctAnswer}. ${penalty ? `-${penalty} point.` : "No penalty."}`, "bad");
+        showFloatingFeedback(penalty ? `-${penalty}` : "Miss", false);
+        playTone("wrong");
+        elements.battleScreen.classList.remove("flash-wrong");
+        void elements.battleScreen.offsetWidth;
+        elements.battleScreen.classList.add("flash-wrong");
+      }
+
+      updateHud();
+
+      if (settings.autoNext) {
+        generateQuestion();
+      } else {
+        elements.answer.value = "";
+      }
+    }
+
+    function startGame() {
+      clearInterval(game.timer);
+
+      game = {
+        correctAnswer: 0,
+        score: 0,
+        streak: 0,
+        correct: 0,
+        attempts: 0,
+        timeLeft: settings.timeLimit,
+        energy: 0,
+        isPlaying: true,
+        isPaused: false,
+        timer: null,
+        round: 0
+      };
+
+      elements.answer.disabled = false;
+      elements.submitBtn.disabled = false;
+      elements.pauseBtn.disabled = false;
+      elements.startBtn.disabled = true;
+      elements.pauseBtn.textContent = "Pause";
+
+      setMessage("Game started. Solve fast and build your combo!", "info");
+      updateHud();
+      generateQuestion();
+
+      game.timer = setInterval(() => {
+        if (game.isPaused) return;
+        game.timeLeft--;
+        updateHud();
+
+        if (game.timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function pauseGame() {
+      if (!game.isPlaying) return;
+      game.isPaused = !game.isPaused;
+      elements.pauseBtn.textContent = game.isPaused ? "Resume" : "Pause";
+      elements.answer.disabled = game.isPaused;
+      elements.submitBtn.disabled = game.isPaused;
+      setMessage(game.isPaused ? "Game paused." : "Game resumed. Keep going!", game.isPaused ? "info" : "gold");
+      if (!game.isPaused) elements.answer.focus();
+    }
+
+    function endGame() {
+      clearInterval(game.timer);
+      game.isPlaying = false;
+      game.isPaused = false;
+
+      elements.answer.disabled = true;
+      elements.submitBtn.disabled = true;
+      elements.pauseBtn.disabled = true;
+      elements.startBtn.disabled = false;
+      elements.question.textContent = "Game Result";
+      elements.roundLabel.textContent = "Game Complete";
+
+      const currentScore = game.score;
+      const isNewBest = currentScore > stats.best;
+      stats.best = Math.max(stats.best, currentScore);
+      stats.scores.unshift({
+        score: currentScore,
+        mode: settings.difficulty,
+        hero: settings.hero,
+        accuracy: getAccuracy(),
+        date: new Date().toLocaleDateString()
+      });
+      stats.scores = stats.scores.slice(0, 20);
+      saveStats();
+
+      const rating = getScoreRating(currentScore);
+      const accuracy = getAccuracy();
+
+      if (isNewBest) {
+        setMessage(`New best score! ${currentScore} points • ${accuracy}% accuracy • ${rating.rank}`, "gold");
+        playTone("correct");
+      } else {
+        setMessage(`${rating.status}: ${currentScore} points • ${accuracy}% accuracy • ${rating.rank}`, rating.status === "Needs Practice" ? "bad" : "info");
+      }
+
+      updateHud();
+      updateRankBoard(currentScore);
+    }
+
+    function resetGame() {
+      clearInterval(game.timer);
+      game.isPlaying = false;
+      game.isPaused = false;
+      game.score = 0;
+      game.streak = 0;
+      game.correct = 0;
+      game.attempts = 0;
+      game.energy = 0;
+      game.round = 0;
+      game.timeLeft = settings.timeLimit;
+
+      elements.answer.value = "";
+      elements.answer.disabled = true;
+      elements.submitBtn.disabled = true;
+      elements.pauseBtn.disabled = true;
+      elements.startBtn.disabled = false;
+      elements.pauseBtn.textContent = "Pause";
+      elements.question.textContent = "Press Start";
+      elements.roundLabel.textContent = "Get Ready";
+      setMessage("Game reset. Start again when ready.", "info");
+      updateHud();
+    }
+
+    function openSettings() {
+      elements.settingsModal.classList.add("open");
+    }
+
+    function closeSettings() {
+      elements.settingsModal.classList.remove("open");
+    }
+
+    function applySettingsToControls() {
+      elements.difficultySelect.value = settings.difficulty;
+      elements.timeSelect.value = String(settings.timeLimit);
+      elements.soundToggle.checked = settings.sound;
+      elements.autoNextToggle.checked = settings.autoNext;
+
+      document.querySelectorAll(".toggle-chip input[value]").forEach((checkbox) => {
+        checkbox.checked = settings.operators.includes(checkbox.value);
+      });
+
+      updateHero(settings.hero);
+      game.timeLeft = settings.timeLimit;
+      updateHud();
+      updateRankBoard();
+    }
+
+    function saveSettingsFromModal() {
+      const selectedOperators = [...document.querySelectorAll(".toggle-chip input[value]:checked")].map((input) => input.value);
+
+      settings.difficulty = elements.difficultySelect.value;
+      settings.timeLimit = Number(elements.timeSelect.value);
+      settings.operators = selectedOperators.length ? selectedOperators : ["+", "-", "×"];
+      settings.sound = elements.soundToggle.checked;
+      settings.autoNext = elements.autoNextToggle.checked;
+
+      saveSettings();
+      resetGame();
+      closeSettings();
+      setMessage("Settings saved. Start a new game with your chosen setup.", "gold");
+    }
+
+    function clearScores() {
+      stats = { best: 0, scores: [] };
+      saveStats();
+      updateRankBoard(0);
+      updateHud();
+      setMessage("Scores reset. You can start a new score record.", "info");
+    }
+
+    document.querySelectorAll(".hero-option").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (game.isPlaying) {
+          setMessage("You cannot switch characters while playing.", "bad");
+          return;
+        }
+        updateHero(button.dataset.hero);
+        setMessage(`${button.dataset.hero} selected.`, "gold");
+      });
+    });
+
+    elements.startBtn.addEventListener("click", startGame);
+    elements.submitBtn.addEventListener("click", checkAnswer);
+    elements.pauseBtn.addEventListener("click", pauseGame);
+    elements.restartBtn.addEventListener("click", resetGame);
+    elements.settingsBtn.addEventListener("click", openSettings);
+    elements.closeSettingsBtn.addEventListener("click", closeSettings);
+    elements.saveSettingsBtn.addEventListener("click", saveSettingsFromModal);
+    elements.clearScoresBtn.addEventListener("click", clearScores);
+
+    elements.settingsModal.addEventListener("click", (event) => {
+      if (event.target === elements.settingsModal) closeSettings();
+    });
+
+    elements.answer.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") checkAnswer();
+    });
+
+    applySettingsToControls();
+  </script>
+</body>
+</html>
