@@ -36,8 +36,10 @@
         radial-gradient(circle at 18% 12%, rgba(34, 211, 238, 0.2), transparent 32%),
         radial-gradient(circle at 86% 8%, rgba(139, 92, 246, 0.22), transparent 36%),
         linear-gradient(135deg, var(--bg1), var(--bg2));
+      background-size: 140% 140%;
       padding: 18px;
       overflow-x: hidden;
+      animation: backgroundMove 14s ease-in-out infinite alternate;
     }
 
     body::before {
@@ -51,6 +53,48 @@
         linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
       background-size: 46px 46px;
       mask-image: radial-gradient(circle, black, transparent 78%);
+      animation: gridMove 18s linear infinite;
+    }
+
+    @keyframes backgroundMove {
+      from { background-position: 0% 50%; }
+      to { background-position: 100% 50%; }
+    }
+
+    @keyframes gridMove {
+      from { background-position: 0 0, 0 0; }
+      to { background-position: 46px 46px, 46px 46px; }
+    }
+
+    .aura {
+      position: fixed;
+      width: 260px;
+      height: 260px;
+      border-radius: 999px;
+      pointer-events: none;
+      filter: blur(26px);
+      opacity: 0.18;
+      z-index: 0;
+      animation: auraFloat 8s ease-in-out infinite alternate;
+      will-change: transform;
+    }
+
+    .aura-one {
+      left: -80px;
+      top: 20%;
+      background: var(--cyan);
+    }
+
+    .aura-two {
+      right: -90px;
+      bottom: 10%;
+      background: var(--purple);
+      animation-delay: -3s;
+    }
+
+    @keyframes auraFloat {
+      from { transform: translate3d(0, 0, 0) scale(1); }
+      to { transform: translate3d(28px, -22px, 0) scale(1.08); }
     }
 
     .site {
@@ -59,6 +103,14 @@
       margin: 0 auto;
       position: relative;
       z-index: 1;
+      opacity: 0;
+      transform: translateY(14px);
+    }
+
+    body.loaded .site {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.5s ease, transform 0.5s ease;
     }
 
     header {
@@ -77,6 +129,7 @@
     }
 
     .logo {
+      position: relative;
       width: 56px;
       height: 56px;
       display: grid;
@@ -87,6 +140,25 @@
       color: #111827;
       font-size: 1.35rem;
       font-weight: 900;
+      animation: logoPulse 2.8s ease-in-out infinite;
+    }
+
+    .logo::after {
+      content: "";
+      position: absolute;
+      inset: -5px;
+      border-radius: inherit;
+      border: 1px solid rgba(250, 204, 21, 0.42);
+      animation: ringPulse 2.8s ease-in-out infinite;
+    }
+
+    @keyframes logoPulse {
+      50% { transform: translateY(-1px) scale(1.03); }
+    }
+
+    @keyframes ringPulse {
+      0%, 100% { opacity: 0.25; transform: scale(1); }
+      50% { opacity: 0.75; transform: scale(1.12); }
     }
 
     h1 {
@@ -121,12 +193,18 @@
       cursor: pointer;
       font-weight: 900;
       box-shadow: 0 8px 22px var(--shadow);
-      transition: 0.18s ease;
+      transition: transform 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease;
+      will-change: transform;
     }
 
     .btn:hover:not(:disabled) {
       transform: translateY(-2px);
       filter: brightness(1.12);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(0) scale(0.98);
     }
 
     .btn:disabled {
@@ -160,6 +238,19 @@
       overflow: hidden;
       box-shadow: 0 20px 50px var(--shadow);
       backdrop-filter: blur(12px);
+      transform: translateY(16px);
+      opacity: 0;
+    }
+
+    body.loaded .panel {
+      animation: panelIn 0.55s ease forwards;
+    }
+
+    body.loaded .panel:nth-child(2) { animation-delay: 0.08s; }
+    body.loaded .panel:nth-child(3) { animation-delay: 0.16s; }
+
+    @keyframes panelIn {
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .panel-title {
@@ -201,6 +292,11 @@
       background: radial-gradient(circle at top, rgba(250, 204, 21, 0.85), rgba(34, 211, 238, 0.16));
       border: 2px solid rgba(250, 204, 21, 0.5);
       box-shadow: 0 0 26px rgba(250, 204, 21, 0.23);
+      animation: avatarFloat 3.4s ease-in-out infinite;
+    }
+
+    @keyframes avatarFloat {
+      50% { transform: translateY(-4px); }
     }
 
     .character-card h3 {
@@ -237,6 +333,15 @@
       border-color: var(--gold);
       transform: translateY(-2px);
       box-shadow: 0 0 18px rgba(250, 204, 21, 0.28);
+    }
+
+    .character-option.active span {
+      animation: activeCharacter 1.1s ease-in-out infinite alternate;
+    }
+
+    @keyframes activeCharacter {
+      from { transform: scale(1); }
+      to { transform: scale(1.12) rotate(-3deg); }
     }
 
     .character-option span {
@@ -277,7 +382,14 @@
       width: 0%;
       border-radius: inherit;
       background: linear-gradient(90deg, var(--cyan), var(--gold));
+      background-size: 180% 100%;
       transition: width 0.25s ease;
+      animation: meterShine 1.7s linear infinite;
+    }
+
+    @keyframes meterShine {
+      from { background-position: 0% 50%; }
+      to { background-position: 180% 50%; }
     }
 
     .hud {
@@ -307,6 +419,29 @@
     .stat strong {
       color: white;
       font-size: 1.35rem;
+      display: inline-block;
+    }
+
+    .stat.bump strong {
+      animation: statBump 0.28s ease;
+    }
+
+    .stat.timer-danger {
+      border-color: rgba(239, 68, 68, 0.5);
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.18);
+    }
+
+    .stat.timer-danger strong {
+      color: #fecaca;
+      animation: timerPulse 0.75s ease-in-out infinite;
+    }
+
+    @keyframes statBump {
+      50% { transform: scale(1.18); color: var(--gold); }
+    }
+
+    @keyframes timerPulse {
+      50% { transform: scale(1.12); }
     }
 
     .game-screen {
@@ -345,6 +480,18 @@
       top: -155px;
     }
 
+    .game-screen.active-round::before {
+      animation: rotateRing 8s linear infinite;
+    }
+
+    .game-screen.active-round::after {
+      animation: rotateRing 10s linear infinite reverse;
+    }
+
+    @keyframes rotateRing {
+      to { transform: rotate(360deg); }
+    }
+
     .game-inner {
       width: 100%;
       max-width: 550px;
@@ -373,6 +520,17 @@
       text-shadow: 0 0 18px rgba(34, 211, 238, 0.5);
       border: 1px solid rgba(250, 204, 21, 0.25);
       background: linear-gradient(135deg, rgba(34, 211, 238, 0.13), rgba(139, 92, 246, 0.14));
+      transform-origin: center;
+    }
+
+    .question.question-pop {
+      animation: questionPop 0.28s ease;
+    }
+
+    @keyframes questionPop {
+      0% { transform: scale(0.96); opacity: 0.75; }
+      70% { transform: scale(1.03); }
+      100% { transform: scale(1); opacity: 1; }
     }
 
     .answer-row {
@@ -402,6 +560,35 @@
 
     .answer-row input::placeholder {
       color: rgba(255, 255, 255, 0.45);
+    }
+
+    .choice-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 13px;
+    }
+
+    .choice-btn {
+      padding: 10px 8px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 900;
+      transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    }
+
+    .choice-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      border-color: rgba(250, 204, 21, 0.55);
+      background: rgba(250, 204, 21, 0.12);
+    }
+
+    .choice-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
     }
 
     .controls {
@@ -435,6 +622,34 @@
 
     .float-score.show {
       animation: floatUp 0.78s ease;
+    }
+
+    .combo-banner {
+      position: fixed;
+      left: 50%;
+      top: 86px;
+      z-index: 12;
+      padding: 12px 20px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(250, 204, 21, 0.98), rgba(251, 146, 60, 0.98));
+      color: #111827;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+      transform: translate(-50%, -20px) scale(0.92);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .combo-banner.show {
+      animation: comboDrop 0.9s ease;
+    }
+
+    @keyframes comboDrop {
+      0% { opacity: 0; transform: translate(-50%, -24px) scale(0.9); }
+      25% { opacity: 1; transform: translate(-50%, 0) scale(1.04); }
+      70% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -18px) scale(0.98); }
     }
 
     @keyframes floatUp {
@@ -476,6 +691,16 @@
       background: radial-gradient(circle, rgba(250, 204, 21, 0.28), rgba(34, 211, 238, 0.12), rgba(15, 23, 42, 0.95));
       box-shadow: 0 0 32px rgba(250, 204, 21, 0.24);
       font-size: 2.65rem;
+    }
+
+    .rank-badge.rank-pop {
+      animation: rankPop 0.55s ease;
+    }
+
+    @keyframes rankPop {
+      0% { transform: scale(0.82) rotate(-8deg); }
+      60% { transform: scale(1.12) rotate(4deg); }
+      100% { transform: scale(1) rotate(0); }
     }
 
     .rank-card h3 {
@@ -543,6 +768,12 @@
 
     .modal-bg.open {
       display: flex;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .modal {
@@ -553,6 +784,12 @@
       border: 1px solid var(--line);
       background: linear-gradient(180deg, #111c3a, #08111f);
       box-shadow: 0 22px 70px rgba(0, 0, 0, 0.6);
+      animation: modalUp 0.24s ease;
+    }
+
+    @keyframes modalUp {
+      from { opacity: 0; transform: translateY(14px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     .settings-grid {
@@ -625,6 +862,73 @@
       margin-top: 4px;
     }
 
+    .intro {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at center, rgba(17, 28, 63, 0.98), rgba(7, 17, 31, 0.98));
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+
+    .intro.hide {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .intro-card {
+      text-align: center;
+      padding: 26px;
+      border-radius: 26px;
+      border: 1px solid rgba(250, 204, 21, 0.3);
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42);
+    }
+
+    .intro-logo {
+      width: 76px;
+      height: 76px;
+      border-radius: 24px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 12px;
+      background: linear-gradient(135deg, var(--gold), var(--orange));
+      color: #111827;
+      font-size: 1.7rem;
+      font-weight: 900;
+      animation: logoPulse 1.4s ease-in-out infinite;
+    }
+
+    .intro-card p {
+      color: var(--muted);
+      font-weight: 900;
+      margin-bottom: 14px;
+    }
+
+    .loader {
+      width: 180px;
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .loader::before {
+      content: "";
+      display: block;
+      width: 42%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--cyan), var(--gold));
+      animation: loadingBar 1s ease-in-out infinite alternate;
+    }
+
+    @keyframes loadingBar {
+      from { transform: translateX(0); }
+      to { transform: translateX(138%); }
+    }
+
     footer {
       margin-top: 16px;
       text-align: center;
@@ -668,10 +972,37 @@
       .answer-row {
         grid-template-columns: 1fr;
       }
+
+      .choice-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="intro" id="intro">
+    <div class="intro-card">
+      <div class="intro-logo">M+</div>
+      <p>Loading Glenn's Math Battle...</p>
+      <div class="loader"></div>
+    </div>
+  </div>
+
+  <div class="aura aura-one"></div>
+  <div class="aura aura-two"></div>
+  <div class="combo-banner" id="comboBanner">Combo Ready!</div>
+
   <div class="site">
     <header>
       <div class="brand">
@@ -759,6 +1090,8 @@
                 <input type="number" id="answer" placeholder="Enter answer" disabled />
                 <button class="btn btn-main" id="attackBtn" disabled>Submit</button>
               </div>
+
+              <div class="choice-row" id="choices" aria-label="Answer choices"></div>
 
               <div class="controls">
                 <button class="btn" id="pauseBtn" disabled>Pause</button>
@@ -854,8 +1187,12 @@
 
   <script>
     const $ = (id) => document.getElementById(id);
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let audioContext = null;
 
     const el = {
+      intro: $("intro"),
+      comboBanner: $("comboBanner"),
       settingsBtn: $("settingsBtn"),
       startBtn: $("startBtn"),
       settingsModal: $("settingsModal"),
@@ -886,6 +1223,7 @@
       roundLabel: $("roundLabel"),
       question: $("question"),
       answer: $("answer"),
+      choices: $("choices"),
       attackBtn: $("attackBtn"),
       pauseBtn: $("pauseBtn"),
       resetBtn: $("resetBtn"),
@@ -967,17 +1305,37 @@
       el.message.className = `message ${type}`;
     }
 
+    function animateClass(element, className) {
+      if (!element || prefersReducedMotion) return;
+      element.classList.remove(className);
+      void element.offsetWidth;
+      element.classList.add(className);
+    }
+
+    function bumpStat(element) {
+      const box = element?.closest(".stat");
+      animateClass(box, "bump");
+    }
+
+    function getAudioContext() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioContext.state === "suspended") audioContext.resume();
+      return audioContext;
+    }
+
     function beep(type) {
       if (!settings.sound) return;
       try {
-        const audio = new (window.AudioContext || window.webkitAudioContext)();
+        const audio = getAudioContext();
         const osc = audio.createOscillator();
         const gain = audio.createGain();
         osc.connect(gain);
         gain.connect(audio.destination);
         osc.frequency.value = type === "good" ? 720 : 180;
         osc.type = type === "good" ? "triangle" : "sawtooth";
-        gain.gain.setValueAtTime(0.08, audio.currentTime);
+        gain.gain.setValueAtTime(0.06, audio.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.12);
         osc.start();
         osc.stop(audio.currentTime + 0.13);
@@ -1073,6 +1431,7 @@
       el.best.textContent = records.best;
       el.mode.textContent = settings.difficulty;
       el.difficultyText.textContent = `${settings.difficulty} Mode`;
+      el.time.closest(".stat").classList.toggle("timer-danger", game.playing && game.timeLeft <= 10);
       updateBars();
     }
 
@@ -1096,6 +1455,28 @@
 
       el.history.innerHTML = records.scores.slice(0, 5).map((item, index) => {
         return `<div class="score-item"><span>#${index + 1} ${item.mode}</span><strong>${item.score} pts</strong></div>`;
+      }).join("");
+    }
+
+    function shuffle(list) {
+      return list
+        .map((value) => ({ value, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map((item) => item.value);
+    }
+
+    function renderChoices() {
+      const spread = settings.difficulty === "Hard" ? 15 : settings.difficulty === "Normal" ? 10 : 6;
+      const choices = new Set([game.answer]);
+
+      while (choices.size < 4) {
+        const direction = Math.random() < 0.5 ? -1 : 1;
+        const value = Math.max(0, game.answer + direction * rand(1, spread));
+        choices.add(value);
+      }
+
+      el.choices.innerHTML = shuffle([...choices]).map((choice) => {
+        return `<button class="choice-btn" type="button" data-choice="${choice}">${choice}</button>`;
       }).join("");
     }
 
@@ -1134,6 +1515,8 @@
       el.roundLabel.textContent = `Round ${game.round} • ${settings.character}`;
       el.question.textContent = `${a} ${op} ${b}`;
       el.answer.value = "";
+      renderChoices();
+      animateClass(el.question, "question-pop");
       el.answer.focus();
     }
 
@@ -1163,6 +1546,12 @@
       el.gameScreen.classList.add(type === "good" ? "flash-good" : "flash-bad");
     }
 
+    function showComboBanner() {
+      if (game.streak < 3) return;
+      el.comboBanner.textContent = `Combo ${game.streak}x! Keep going!`;
+      animateClass(el.comboBanner, "show");
+    }
+
     function submitAnswer() {
       if (!game.playing || game.paused) return;
 
@@ -1182,6 +1571,9 @@
         game.score += add;
         setMessage(`Correct! +${add} points. Combo ${game.streak}x!`, "good");
         floatText(`+${add}`, "good");
+        bumpStat(el.score);
+        bumpStat(el.streak);
+        showComboBanner();
         beep("good");
         flash("good");
       } else {
@@ -1191,6 +1583,8 @@
         game.energy = Math.max(0, game.energy - 10);
         setMessage(`Wrong. The answer was ${game.answer}. ${penalty ? `-${penalty} point.` : "No penalty."}`, "bad");
         floatText(penalty ? `-${penalty}` : "Miss", "bad");
+        bumpStat(el.score);
+        bumpStat(el.streak);
         beep("bad");
         flash("bad");
       }
@@ -1221,6 +1615,7 @@
       el.pauseBtn.disabled = false;
       el.startBtn.disabled = true;
       el.pauseBtn.textContent = "Pause";
+      el.gameScreen.classList.add("active-round");
       setMessage("Game started. Solve fast and build your combo!", "info");
       updateHud();
       makeQuestion();
@@ -1254,6 +1649,8 @@
       el.startBtn.disabled = false;
       el.question.textContent = "Game Result";
       el.roundLabel.textContent = "Game Complete";
+      el.gameScreen.classList.remove("active-round");
+      el.choices.innerHTML = "";
 
       const finalScore = game.score;
       const newBest = finalScore > records.best;
@@ -1274,6 +1671,7 @@
 
       updateHud();
       updateBoard(finalScore);
+      animateClass(el.rankBadge, "rank-pop");
     }
 
     function resetGame() {
@@ -1295,6 +1693,8 @@
       el.pauseBtn.textContent = "Pause";
       el.question.textContent = "Press Start";
       el.roundLabel.textContent = "Get Ready";
+      el.gameScreen.classList.remove("active-round");
+      el.choices.innerHTML = "";
       setMessage("Game reset. Start again when ready.", "info");
       updateHud();
     }
@@ -1367,8 +1767,20 @@
       if (event.key === "Enter") submitAnswer();
     });
 
+    el.choices.addEventListener("click", (event) => {
+      const button = event.target.closest(".choice-btn");
+      if (!button || !game.playing || game.paused) return;
+      el.answer.value = button.dataset.choice;
+      submitAnswer();
+    });
+
     el.settingsModal.addEventListener("click", (event) => {
       if (event.target === el.settingsModal) closeSettingsModal();
+    });
+
+    window.addEventListener("load", () => {
+      document.body.classList.add("loaded");
+      setTimeout(() => el.intro.classList.add("hide"), prefersReducedMotion ? 50 : 550);
     });
 
     applySettings();
